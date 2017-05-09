@@ -19,13 +19,16 @@
 (set-current-implementation :vectorz)
 
 (use 'incanter.stats)
+
+(import 'htsjdk.variant.bcf2.BCF2Codec)
+
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
+;;; {"type":"html","content":"<span class='clj-class'>htsjdk.variant.bcf2.BCF2Codec</span>","value":"htsjdk.variant.bcf2.BCF2Codec"}
 ;; <=
 
 ;; @@
-(def M (matrix [
+(def contig (matrix [
                  [0 0 0 0 0 1 1 0 0 1 1 1 1 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
                  [0 0 0 0 0 1 1 0 0 1 1 1 1 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
                  [0 0 0 0 -1 1 -1 0 0 1 1 1 2 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
@@ -35,8 +38,25 @@
                  ]))
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;snowy-meadow/M</span>","value":"#'snowy-meadow/M"}
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;snowy-meadow/contig</span>","value":"#'snowy-meadow/contig"}
 ;; <=
+
+;; **
+;;; ## Import VCF Files
+;;; Chr's are just contigs split where the NNNN's are... need to handle this by parsing FASTA file
+;; **
+
+;; @@
+(def bcf (BCF2Codec.))
+(.canDecode bcf "/home/joseph/filtered-set-2014Apr12.bcf")
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}
+;; <=
+
+;; **
+;;; ## Calculate
+;; **
 
 ;; @@
 ; Only handle bi-allelic sites, and no unknowns / missing data
@@ -92,8 +112,12 @@
 ;; <=
 
 ;; @@
-(second (calculate-pairwise-ld M))
+(first (calculate-pairwise-ld M))
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-unkown'>#vectorz/matrix [[27.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,0.0,24.0,24.0,23.0,23.0],\n[0.0,0.0,0.0,26.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,0.0,25.0]]</span>","value":"#vectorz/matrix [[27.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,0.0,24.0,24.0,23.0,23.0],\n[0.0,0.0,0.0,26.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,0.0,25.0]]"}
+;;; {"type":"html","content":"<span class='clj-unkown'>#vectorz/matrix [[1.0,0.9999999999999999,0.9999999999999997,0.6953288019758298,0.006715191366878188,0.006715191366878188],\n[0.0,1.0,0.9999999999999997,0.6953288019758298,0.006715191366878188,0.006715191366878188],\n[0.0,0.0,1.0,0.6693419514856721,-0.08807048459279794,-0.08807048459279794],\n[0.0,0.0,0.0,1.0,0.11613144917081454,0.11613144917081454],\n[0.0,0.0,0.0,0.0,1.0,1.0],\n[0.0,0.0,0.0,0.0,0.0,1.0]]</span>","value":"#vectorz/matrix [[1.0,0.9999999999999999,0.9999999999999997,0.6953288019758298,0.006715191366878188,0.006715191366878188],\n[0.0,1.0,0.9999999999999997,0.6953288019758298,0.006715191366878188,0.006715191366878188],\n[0.0,0.0,1.0,0.6693419514856721,-0.08807048459279794,-0.08807048459279794],\n[0.0,0.0,0.0,1.0,0.11613144917081454,0.11613144917081454],\n[0.0,0.0,0.0,0.0,1.0,1.0],\n[0.0,0.0,0.0,0.0,0.0,1.0]]"}
 ;; <=
+
+;; @@
+
+;; @@
