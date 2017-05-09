@@ -1,0 +1,99 @@
+;; gorilla-repl.fileformat = 1
+
+;; **
+;;; # Gorilla REPL
+;;; 
+;;; Welcome to gorilla :-)
+;;; 
+;;; Shift + enter evaluates code. Hit alt+g twice in quick succession or click the menu icon (upper-right corner) for more commands ...
+;;; 
+;;; It's a good habit to run each worksheet in its own namespace: feel free to use the declaration we've provided below if you'd like.
+;; **
+
+;; @@
+(ns snowy-meadow
+  (:require [gorilla-plot.core :as plot]))
+
+(use 'clojure.core.matrix)
+(use 'clojure.core.matrix.operators) 
+(set-current-implementation :vectorz)
+
+(use 'incanter.stats)
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
+;; <=
+
+;; @@
+(def M (matrix [
+                 [0 0 0 0 0 1 1 0 0 1 1 1 1 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 0 0 1 1 1 1 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
+                 [0 0 0 0 -1 1 -1 0 0 1 1 1 2 0 1 1 0 0 1 1 1 1 1 1 1 1 1]
+                 [0 0 0 0 0 1 1 0 1 1 1 1 -1 0 1 1 0 0 1 1 1 1 0 1 1 0 0]
+                 [1 1 0 1 0 1 1 0 -1 0 1 1 2 1 0 1 0 1 1 0 0 1 0 0 1 1 0]
+                 [1 1 0 1 0 1 1 0 -1 0 1 1 2 1 0 1 0 1 1 0 0 1 0 0 1 1 0]
+                 ]))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;snowy-meadow/M</span>","value":"#'snowy-meadow/M"}
+;; <=
+
+;; @@
+; Only handle bi-allelic sites, and no unknowns / missing data
+(defn one-or-zero [x]
+  (or
+    (= x 0.0)
+    (= x 1.0)))
+
+(defn calculate-acceptable-obs [x y]
+  (let [M (transpose
+            (matrix
+              (filter 
+                identity
+                (for [i (rows (transpose (matrix [x y])))]
+                  (if (every? one-or-zero i)
+                    i)))))]
+    (second (shape M))))
+
+(defn calculate-acceptable-obs-diagonal [M]
+  (for [i (range (first (shape M)))]
+    (calculate-acceptable-obs (get-row M i) (get-row M i))))
+  
+(defn calculate-ld [x y]
+  (let [M (transpose
+            (matrix
+              (filter 
+                identity
+                (for [i (rows (transpose (matrix [x y])))]
+                  (if (every? one-or-zero i)
+                    i)))))]
+    [(correlation (get-row M 0) (get-row M 1)) (second (shape M))]))
+
+(defn calculate-pairwise-ld [M]
+  (let [row-count (first (shape M))]
+    (let [correlations (mutable
+                         (diagonal-matrix (repeat row-count 1)))
+          observations (mutable
+                         (diagonal-matrix (calculate-acceptable-obs-diagonal M)))]
+      (doall
+        (for [i (range row-count)
+              j (range (inc i) row-count)]
+        (let [[corr obs] (calculate-ld (get-row M i) (get-row M j))]
+          [corr obs 1]
+          (mset! correlations i j corr)
+          (mset! observations i j obs))))
+      
+      [correlations observations])))
+  
+  
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;snowy-meadow/calculate-pairwise-ld</span>","value":"#'snowy-meadow/calculate-pairwise-ld"}
+;; <=
+
+;; @@
+(second (calculate-pairwise-ld M))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-unkown'>#vectorz/matrix [[27.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,0.0,24.0,24.0,23.0,23.0],\n[0.0,0.0,0.0,26.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,0.0,25.0]]</span>","value":"#vectorz/matrix [[27.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,27.0,24.0,26.0,25.0,25.0],\n[0.0,0.0,24.0,24.0,23.0,23.0],\n[0.0,0.0,0.0,26.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,25.0,25.0],\n[0.0,0.0,0.0,0.0,0.0,25.0]]"}
+;; <=
