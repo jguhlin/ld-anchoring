@@ -1,3 +1,6 @@
+;; gorilla-repl.fileformat = 1
+
+;; @@
 (defproject ld-anchoring "0.1.0-SNAPSHOT"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
@@ -13,3 +16,9 @@
 								 [gorilla-repl "0.4.0"]
 								 [com.github.samtools/htsjdk "2.9.1"]
 								])
+
+;; @@
+
+;; @@
+
+;; @@
